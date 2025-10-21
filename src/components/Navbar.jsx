@@ -66,6 +66,7 @@ const Navbar = () => {
         { path: '/', label: 'Home' },
         { path: '/tasks', label: 'Tasks' },
         { path: '/posts', label: 'Posts' },
+        { path: '/my-posts', label: 'My Posts' },
       ]
     : [
         { path: '/', label: 'Home' },

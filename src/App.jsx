@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import TasksPage from './pages/TasksPage';
 import Posts from './pages/Posts';
+import MyPosts from './pages/MyPosts';
 
 /**
  * Main App Component
@@ -73,6 +74,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <TasksPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my-posts"
+                element={
+                  <ProtectedRoute>
+                    <MyPosts />
                   </ProtectedRoute>
                 }
               />

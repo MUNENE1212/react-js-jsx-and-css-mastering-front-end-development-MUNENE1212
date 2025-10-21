@@ -69,6 +69,21 @@ const useTaskManager = () => {
   };
 
   /**
+   * Update task text via API
+   * @param {string} id - Task ID to update
+   * @param {string} text - New task text
+   */
+  const updateTaskText = async (id, text) => {
+    try {
+      const updatedTask = await updateTask(id, { text });
+      setTasks(tasks.map((t) => (t._id === id ? updatedTask : t)));
+    } catch (err) {
+      setError('Failed to update task');
+      console.error('Error updating task:', err);
+    }
+  };
+
+  /**
    * Delete a task via API
    * @param {string} id - Task ID to delete
    */
@@ -82,7 +97,7 @@ const useTaskManager = () => {
     }
   };
 
-  return { tasks, addTask, toggleTask, deleteTask: removeTask, loading, error, fetchTasks };
+  return { tasks, addTask, toggleTask, updateTaskText, deleteTask: removeTask, loading, error, fetchTasks };
 };
 
 /**
@@ -109,9 +124,11 @@ const useTaskManager = () => {
  */
 const TaskManager = () => {
   // Use custom hook for task management with backend API
-  const { tasks, addTask, toggleTask, deleteTask, loading, error, fetchTasks } = useTaskManager();
+  const { tasks, addTask, toggleTask, updateTaskText, deleteTask, loading, error, fetchTasks } = useTaskManager();
   const [newTaskText, setNewTaskText] = useState('');
   const [filter, setFilter] = useState('all');
+  const [editingTask, setEditingTask] = useState(null);
+  const [editText, setEditText] = useState('');
 
   // Filter tasks based on selected filter
   const filteredTasks = tasks.filter((task) => {
@@ -125,6 +142,27 @@ const TaskManager = () => {
     e.preventDefault();
     addTask(newTaskText);
     setNewTaskText('');
+  };
+
+  // Handle edit mode
+  const startEdit = (task) => {
+    setEditingTask(task._id);
+    setEditText(task.text);
+  };
+
+  // Cancel editing
+  const cancelEdit = () => {
+    setEditingTask(null);
+    setEditText('');
+  };
+
+  // Save edited task
+  const saveEdit = async (id) => {
+    if (editText.trim()) {
+      await updateTaskText(id, editText);
+      setEditingTask(null);
+      setEditText('');
+    }
   };
 
   // Show loading state
@@ -208,29 +246,73 @@ const TaskManager = () => {
               key={task._id}
               className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700"
             >
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={task.completed}
-                  onChange={() => toggleTask(task._id)}
-                  className="h-5 w-5 text-blue-600 rounded focus:ring-blue-500"
-                />
-                <span
-                  className={`${
-                    task.completed ? 'line-through text-gray-500 dark:text-gray-400' : ''
-                  }`}
-                >
-                  {task.text}
-                </span>
-              </div>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => deleteTask(task._id)}
-                aria-label="Delete task"
-              >
-                Delete
-              </Button>
+              {editingTask === task._id ? (
+                // Edit mode
+                <>
+                  <div className="flex items-center gap-3 flex-grow">
+                    <input
+                      type="text"
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      className="flex-grow px-3 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                      autoFocus
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => saveEdit(task._id)}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={cancelEdit}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                // View mode
+                <>
+                  <div className="flex items-center gap-3 flex-grow">
+                    <input
+                      type="checkbox"
+                      checked={task.completed}
+                      onChange={() => toggleTask(task._id)}
+                      className="h-5 w-5 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                    <span
+                      className={`${
+                        task.completed ? 'line-through text-gray-500 dark:text-gray-400' : ''
+                      }`}
+                    >
+                      {task.text}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => startEdit(task)}
+                      aria-label="Edit task"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => deleteTask(task._id)}
+                      aria-label="Delete task"
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </>
+              )}
             </li>
           ))
         )}
