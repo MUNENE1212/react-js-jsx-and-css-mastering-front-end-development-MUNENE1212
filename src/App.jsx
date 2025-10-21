@@ -1,71 +1,101 @@
-import { useState } from 'react';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import TasksPage from './pages/TasksPage';
+import Posts from './pages/Posts';
 
-// Import your components here
-// import Button from './components/Button';
-// import Navbar from './components/Navbar';
-// import Footer from './components/Footer';
-// import TaskManager from './components/TaskManager';
-
+/**
+ * Main App Component
+ *
+ * Root component that sets up:
+ * - Theme context provider for dark/light mode
+ * - Auth context provider for authentication
+ * - React Router for navigation
+ * - Layout wrapper for consistent page structure
+ * - Route definitions with protected routes
+ *
+ * Architecture:
+ * - BrowserRouter provides routing context
+ * - ThemeProvider enables theme switching across the app
+ * - AuthProvider manages authentication state
+ * - ProtectedRoute wraps routes requiring login
+ * - Layout component wraps all routes for consistent structure
+ * - Routes component handles route matching and rendering
+ *
+ * @returns {JSX.Element} - App component with full routing setup
+ */
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      {/* Navbar component will go here */}
-      <header className="bg-white dark:bg-gray-800 shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold">PLP Task Manager</h1>
-        </div>
-      </header>
+    /**
+     * ThemeProvider wraps the entire app
+     * Makes theme context available to all components
+     * Handles theme state and persistence
+     */
+    <ThemeProvider>
+      {/**
+       * AuthProvider wraps the app
+       * Manages authentication state, login, logout
+       * Makes auth context available to all components
+       */}
+      <AuthProvider>
+        {/**
+         * Router provides navigation context
+         * Enables client-side routing without page reloads
+         */}
+        <Router>
+          {/**
+           * Layout component wraps all pages
+           * Provides consistent Navbar and Footer
+           * Ensures proper page structure
+           */}
+          <Layout>
+            {/**
+             * Routes configuration
+             * Defines which component renders for each path
+             * Uses React Router v6 syntax with protected routes
+             */}
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/posts" element={<Posts />} />
 
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-6">
-          <div className="flex flex-col items-center justify-center">
-            <p className="text-lg mb-4">
-              Edit <code className="font-mono bg-gray-200 dark:bg-gray-700 p-1 rounded">src/App.jsx</code> and save to test HMR
-            </p>
-            
-            <div className="flex items-center gap-4 my-4">
-              <button
-                onClick={() => setCount((count) => count - 1)}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-              >
-                -
-              </button>
-              <span className="text-xl font-bold">{count}</span>
-              <button
-                onClick={() => setCount((count) => count + 1)}
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-              >
-                +
-              </button>
-            </div>
+              {/* Protected Routes - Require Authentication */}
+              <Route
+                path="/tasks"
+                element={
+                  <ProtectedRoute>
+                    <TasksPage />
+                  </ProtectedRoute>
+                }
+              />
 
-            <p className="text-gray-500 dark:text-gray-400 mt-4">
-              Implement your TaskManager component here
-            </p>
-          </div>
-        </div>
-        
-        {/* API data display will go here */}
-        <div className="mt-8 bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-6">
-          <h2 className="text-2xl font-bold mb-4">API Data</h2>
-          <p className="text-gray-500 dark:text-gray-400">
-            Fetch and display data from an API here
-          </p>
-        </div>
-      </main>
-
-      {/* Footer component will go here */}
-      <footer className="bg-white dark:bg-gray-800 shadow mt-auto">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-gray-500 dark:text-gray-400">
-            © {new Date().getFullYear()} PLP Task Manager. All rights reserved.
-          </p>
-        </div>
-      </footer>
-    </div>
+              {/* 404 Not Found - Fallback route */}
+              <Route
+                path="*"
+                element={
+                  <div className="text-center py-12">
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                      404 - Page Not Found
+                    </h1>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      The page you're looking for doesn't exist.
+                    </p>
+                  </div>
+                }
+              />
+            </Routes>
+          </Layout>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

@@ -1,58 +1,115 @@
 import React, { useState, useEffect } from 'react';
 import Button from './Button';
+import { getTasks, createTask, updateTask, deleteTask as deleteTaskAPI } from '../api/backendAPI';
 
 /**
- * Custom hook for managing tasks with localStorage persistence
+ * Custom hook for managing tasks with backend API
+ * Replaces localStorage with MongoDB persistence via Express API
  */
-const useLocalStorageTasks = () => {
-  // Initialize state from localStorage or with empty array
-  const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem('tasks');
-    return savedTasks ? JSON.parse(savedTasks) : [];
-  });
+const useTaskManager = () => {
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Update localStorage when tasks change
+  /**
+   * Fetch tasks from backend on mount
+   */
   useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }, [tasks]);
+    fetchTasks();
+  }, []);
 
-  // Add a new task
-  const addTask = (text) => {
-    if (text.trim()) {
-      setTasks([
-        ...tasks,
-        {
-          id: Date.now(),
-          text,
-          completed: false,
-          createdAt: new Date().toISOString(),
-        },
-      ]);
+  /**
+   * Fetch all tasks from API
+   */
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getTasks('all');
+      setTasks(data);
+    } catch (err) {
+      setError('Failed to load tasks');
+      console.error('Error fetching tasks:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Toggle task completion status
-  const toggleTask = (id) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
+  /**
+   * Add a new task via API
+   * @param {string} text - The task description
+   */
+  const addTask = async (text) => {
+    if (text.trim()) {
+      try {
+        const newTask = await createTask({ text });
+        setTasks([newTask, ...tasks]);
+      } catch (err) {
+        setError('Failed to create task');
+        console.error('Error creating task:', err);
+      }
+    }
   };
 
-  // Delete a task
-  const deleteTask = (id) => {
-    setTasks(tasks.filter((task) => task.id !== id));
+  /**
+   * Toggle task completion status via API
+   * @param {string} id - Task ID to toggle
+   */
+  const toggleTask = async (id) => {
+    const task = tasks.find((t) => t._id === id);
+    if (!task) return;
+
+    try {
+      const updatedTask = await updateTask(id, { completed: !task.completed });
+      setTasks(tasks.map((t) => (t._id === id ? updatedTask : t)));
+    } catch (err) {
+      setError('Failed to update task');
+      console.error('Error updating task:', err);
+    }
   };
 
-  return { tasks, addTask, toggleTask, deleteTask };
+  /**
+   * Delete a task via API
+   * @param {string} id - Task ID to delete
+   */
+  const removeTask = async (id) => {
+    try {
+      await deleteTaskAPI(id);
+      setTasks(tasks.filter((t) => t._id !== id));
+    } catch (err) {
+      setError('Failed to delete task');
+      console.error('Error deleting task:', err);
+    }
+  };
+
+  return { tasks, addTask, toggleTask, deleteTask: removeTask, loading, error, fetchTasks };
 };
 
 /**
- * TaskManager component for managing tasks
+ * TaskManager Component
+ *
+ * A complete task management interface with:
+ * - Add new tasks
+ * - Mark tasks as complete/incomplete
+ * - Delete tasks
+ * - Filter tasks (All, Active, Completed)
+ * - Backend API persistence (MongoDB)
+ * - Task statistics
+ *
+ * Demonstrates:
+ * - useState hook for local state
+ * - useEffect for data fetching
+ * - Custom hooks (useTaskManager with API calls)
+ * - Component composition
+ * - Controlled forms
+ * - List rendering with keys
+ * - Loading and error states
+ *
+ * @returns {JSX.Element} - TaskManager component
  */
 const TaskManager = () => {
-  const { tasks, addTask, toggleTask, deleteTask } = useLocalStorageTasks();
+  // Use custom hook for task management with backend API
+  const { tasks, addTask, toggleTask, deleteTask, loading, error, fetchTasks } = useTaskManager();
   const [newTaskText, setNewTaskText] = useState('');
   const [filter, setFilter] = useState('all');
 
@@ -70,9 +127,33 @@ const TaskManager = () => {
     setNewTaskText('');
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 dark:border-blue-400 mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading tasks...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-      <h2 className="text-2xl font-bold mb-6">Task Manager</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Task Manager</h2>
+        <Button variant="secondary" size="sm" onClick={fetchTasks}>
+          Refresh
+        </Button>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+        </div>
+      )}
 
       {/* Task input form */}
       <form onSubmit={handleSubmit} className="mb-6">
@@ -124,14 +205,14 @@ const TaskManager = () => {
         ) : (
           filteredTasks.map((task) => (
             <li
-              key={task.id}
+              key={task._id}
               className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700"
             >
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
                   checked={task.completed}
-                  onChange={() => toggleTask(task.id)}
+                  onChange={() => toggleTask(task._id)}
                   className="h-5 w-5 text-blue-600 rounded focus:ring-blue-500"
                 />
                 <span
@@ -145,7 +226,7 @@ const TaskManager = () => {
               <Button
                 variant="danger"
                 size="sm"
-                onClick={() => deleteTask(task.id)}
+                onClick={() => deleteTask(task._id)}
                 aria-label="Delete task"
               >
                 Delete

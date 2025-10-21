@@ -1,0 +1,58 @@
+/**
+ * Global styles and Tailwind CSS imports
+ * This file includes:
+ * - Tailwind base, components, and utilities
+ * - Custom global styles
+ * - CSS reset for consistent cross-browser rendering
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Custom base layer styles
+ * Applied to all elements for consistent rendering
+ */
+@layer base {
+  * {
+    @apply box-border;
+  }
+
+  body {
+    @apply min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300;
+  }
+
+  #root {
+    @apply min-h-screen flex flex-col;
+  }
+}
+
+/**
+ * Custom component utilities
+ * Reusable component-level styles
+ */
+@layer components {
+  /* Custom scrollbar styles for better UX */
+  .custom-scrollbar::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-gray-100 dark:bg-gray-800;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full hover:bg-gray-400 dark:hover:bg-gray-500;
+  }
+}
+
+/**
+ * Custom utility classes
+ * Helper classes for common patterns
+ */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
