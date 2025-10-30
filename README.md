@@ -6,6 +6,30 @@ A modern, responsive React application built with Tailwind CSS that demonstrates
 
 **[View Live Application](https://week3-teal-rho.vercel.app/)**
 
+## Screenshots
+
+### Desktop Views
+
+#### Home Page - Dark Mode
+![Home Page Dark Mode](./screenshots/hero.png)
+
+#### Home Page - Light Mode
+![Home Page Light Mode](./screenshots/hero%20lightmode.png)
+
+#### Task Manager
+![Task Manager](./screenshots/task%20manager.png)
+
+#### Posts & API Integration
+![Posts Page](./screenshots/posts.png)
+
+### Mobile Responsive Design
+
+<p align="center">
+  <img src="./screenshots/home%20mobile.png" width="250" alt="Mobile Home" />
+  <img src="./screenshots/task%20manager%20mobile.png" width="250" alt="Mobile Task Manager" />
+  <img src="./screenshots/posts%20mobile.png" width="250" alt="Mobile Posts" />
+</p>
+
 ## Features
 
 ### Task Management
