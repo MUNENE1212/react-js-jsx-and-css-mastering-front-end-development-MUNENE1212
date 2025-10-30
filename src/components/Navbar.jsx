@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 import ThemeSwitcher from './ThemeSwitcher';
-import Button from './Button';
 
 /**
  * Navbar Component
@@ -23,9 +21,6 @@ import Button from './Button';
  * <Navbar />
  */
 const Navbar = () => {
-  const { isAuthenticated, user, logout } = useAuth();
-  const navigate = useNavigate();
-
   /**
    * State to track mobile menu open/closed status
    * Mobile menu is hidden by default
@@ -49,29 +44,14 @@ const Navbar = () => {
   };
 
   /**
-   * Handle logout
-   */
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-    closeMobileMenu();
-  };
-
-  /**
    * Navigation links configuration
    * Makes it easy to add/remove/modify nav items
    */
-  const navLinks = isAuthenticated
-    ? [
-        { path: '/', label: 'Home' },
-        { path: '/tasks', label: 'Tasks' },
-        { path: '/posts', label: 'Posts' },
-        { path: '/my-posts', label: 'My Posts' },
-      ]
-    : [
-        { path: '/', label: 'Home' },
-        { path: '/posts', label: 'Posts' },
-      ];
+  const navLinks = [
+    { path: '/', label: 'Home' },
+    { path: '/tasks', label: 'Tasks' },
+    { path: '/posts', label: 'Posts' },
+  ];
 
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-lg transition-colors duration-300">
@@ -110,31 +90,6 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
-
-            {/* Auth Buttons */}
-            {isAuthenticated ? (
-              <>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {user?.name}
-                </span>
-                <Button variant="secondary" size="sm" onClick={handleLogout}>
-                  Logout
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link to="/login">
-                  <Button variant="secondary" size="sm">
-                    Login
-                  </Button>
-                </Link>
-                <Link to="/register">
-                  <Button variant="primary" size="sm">
-                    Sign Up
-                  </Button>
-                </Link>
-              </>
-            )}
 
             {/* Theme Switcher */}
             <div className="ml-4">
@@ -206,37 +161,6 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
-
-            {/* Mobile Auth Buttons */}
-            <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-700">
-              {isAuthenticated ? (
-                <>
-                  <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400">
-                    {user?.name}
-                  </div>
-                  <Button
-                    variant="secondary"
-                    className="w-full mt-2"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </Button>
-                </>
-              ) : (
-                <div className="space-y-2">
-                  <Link to="/login" onClick={closeMobileMenu} className="block">
-                    <Button variant="secondary" className="w-full">
-                      Login
-                    </Button>
-                  </Link>
-                  <Link to="/register" onClick={closeMobileMenu} className="block">
-                    <Button variant="primary" className="w-full">
-                      Sign Up
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       )}
