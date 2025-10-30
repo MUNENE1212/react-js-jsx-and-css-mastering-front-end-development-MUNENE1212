@@ -2,6 +2,10 @@
 
 A modern, responsive React application built with Tailwind CSS that demonstrates component architecture, state management, hooks usage, and API integration.
 
+## Live Demo
+
+**[View Live Application](https://week3-teal-rho.vercel.app/)**
+
 ## Features
 
 ### Task Management
